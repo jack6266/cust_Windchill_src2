@@ -1,0 +1,9 @@
+org.eclipse.jdt.apt.aptEnabled=true
+org.eclipse.jdt.apt.reconcileEnabled=true
+org.eclipse.jdt.apt.processorOptions/eclipse_compiler=true
+org.eclipse.jdt.apt.processorOptions/gen_class_info=true
+org.eclipse.jdt.apt.processorOptions/module_name=null
+org.eclipse.jdt.apt.processorOptions/module_root=C:/ptc/Windchill_10.2/Windchill
+org.eclipse.jdt.apt.processorOptions/wt.home=C:/ptc/Windchill_10.2/Windchill
+org.eclipse.jdt.apt.processorOptions/wt.registry.read.dir=C:/ptc/Windchill_10.2/Windchill/codebase
+org.eclipse.jdt.apt.genSrcDir=src_gen
