@@ -1,0 +1,10 @@
+ResourceInfo.class=wt.tools.resource.EnumResourceInfo
+
+dog.value=Dog
+dog.order=10
+
+cat.value=Cat
+cat.order=20
+
+gerbil.value=Gerbil
+gerbil.order=30
