@@ -15,6 +15,8 @@ import wt.iba.definition.litedefinition.AttributeDefNodeView;
 import wt.iba.definition.litedefinition.BooleanDefView;
 import wt.iba.definition.litedefinition.FloatDefView;
 import wt.iba.definition.litedefinition.IntegerDefView;
+import wt.iba.definition.litedefinition.RatioDefView;
+import wt.iba.definition.litedefinition.ReferenceDefView;
 import wt.iba.definition.litedefinition.StringDefView;
 import wt.iba.definition.litedefinition.TimestampDefView;
 import wt.iba.definition.litedefinition.URLDefView;
@@ -32,6 +34,7 @@ import wt.iba.value.litevalue.TimestampValueDefaultView;
 import wt.iba.value.litevalue.URLValueDefaultView;
 import wt.iba.value.litevalue.UnitValueDefaultView;
 import wt.iba.value.service.IBAValueHelper;
+import wt.iba.value.service.LoadValue;
 import wt.session.SessionHelper;
 import wt.util.WTException;
 import wt.util.WTPropertyVetoException;
@@ -272,10 +275,30 @@ public class IBAUtil {
 	
 
 	private AbstractValueView internalCreateValue(AttributeDefDefaultView attributeDefDefaultView, String s1) {
-		AttributeDefDefaultView attributeDefDefaultView2 = null;
-		
-		return null;
+		AbstractValueView abstractValueView = null;
+		if(attributeDefDefaultView instanceof FloatDefView) {
+			abstractValueView = LoadValue.newFloatValue(attributeDefDefaultView, s1, null);
+		} else if(attributeDefDefaultView instanceof StringDefView) {
+			abstractValueView = LoadValue.newStringValue(attributeDefDefaultView, s1);
+		} else if(attributeDefDefaultView instanceof IntegerDefView) {
+			abstractValueView = LoadValue.newIntegerValue(attributeDefDefaultView, s1);
+		} else if(attributeDefDefaultView instanceof RatioDefView) {
+			abstractValueView = LoadValue.newRatioValue(attributeDefDefaultView, s1, null);
+		} else if(attributeDefDefaultView instanceof TimestampDefView) {
+			abstractValueView = LoadValue.newTimestampValue(attributeDefDefaultView, s1);
+		} else if(attributeDefDefaultView instanceof BooleanDefView) {
+			abstractValueView = LoadValue.newBooleanValue(attributeDefDefaultView, s1);
+		} else if(attributeDefDefaultView instanceof URLDefView) {
+			abstractValueView = LoadValue.newURLValue(attributeDefDefaultView, s1, null);
+		} else if(attributeDefDefaultView instanceof ReferenceDefView) {
+			abstractValueView = LoadValue.newReferenceValue(attributeDefDefaultView, s1, null);
+		} else if(attributeDefDefaultView instanceof UnitDefView) {
+			abstractValueView = LoadValue.newUnitValue(attributeDefDefaultView, s1, null);
+		}
+		return abstractValueView;
 	}
+	
+	
 
 	/**
 	 * 获取软属性值得所有信息
