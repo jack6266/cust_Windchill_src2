@@ -1,37 +1,57 @@
 package ext.training.iba;
 
-import java.rmi.RemoteException;
+import java.sql.PreparedStatement;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
 
 import com.ptc.core.lwc.common.view.AttributeDefinitionReadView;
 import com.ptc.core.lwc.common.view.ConstraintDefinitionReadView;
 import com.ptc.core.lwc.common.view.DatatypeReadView;
 import com.ptc.core.lwc.common.view.TypeDefinitionReadView;
 import com.ptc.core.lwc.server.LWCNormalizedObject;
+import com.ptc.core.lwc.server.PersistableAdapter;
 import com.ptc.core.lwc.server.TypeDefinitionServiceHelper;
 import com.ptc.core.meta.common.DisplayOperationIdentifier;
 import com.ptc.core.meta.common.FloatingPoint;
 import com.ptc.core.meta.common.TypeIdentifier;
 import com.ptc.core.meta.common.UpdateOperationIdentifier;
 import com.ptc.core.meta.common.impl.TypeIdentifierUtilityHelper;
-import com.ptc.tml.log.format.StringHelper;
+import com.ptc.core.meta.server.TypeIdentifierUtility;
 
 import wt.fc.Persistable;
 import wt.fc.PersistenceHelper;
+import wt.fc.PersistenceServerHelper;
+import wt.fc.QueryResult;
+import wt.folder.Folder;
+import wt.iba.definition.FloatDefinition;
 import wt.iba.definition.litedefinition.AttributeDefDefaultView;
+import wt.iba.definition.litedefinition.FloatDefView;
 import wt.iba.value.IBAHolder;
+import wt.method.MethodContext;
+import wt.pom.PersistenceException;
+import wt.pom.WTConnection;
+import wt.query.QueryException;
+import wt.query.QuerySpec;
+import wt.query.SearchCondition;
 import wt.session.SessionHelper;
 import wt.type.TypedUtility;
 import wt.units.FloatingPointWithUnits;
 import wt.util.WTException;
+import wt.util.WTPropertyVetoException;
+import wt.vc.wip.CheckoutLink;
+import wt.vc.wip.NonLatestCheckoutException;
+import wt.vc.wip.WorkInProgressException;
+import wt.vc.wip.WorkInProgressHelper;
+import wt.vc.wip.Workable;
 
 public class IBATrainingDemo {
 	
@@ -42,6 +62,35 @@ public class IBATrainingDemo {
 		
 	}
 	
+	
+	public static Workable doCheckout(Persistable persistable) throws NonLatestCheckoutException, WorkInProgressException, WTPropertyVetoException, PersistenceException, WTException {
+		Workable _workable = null;
+        if (!wt.vc.wip.WorkInProgressHelper.isCheckedOut((Workable) persistable))
+        {
+                if(WorkInProgressHelper.isWorkingCopy((Workable) persistable))
+                {
+                        _workable= (Workable) persistable;
+                }else{
+                        Folder chkfolder = WorkInProgressHelper.service.getCheckoutFolder();
+                        CheckoutLink checkout_link= WorkInProgressHelper.service.checkout((Workable) persistable, chkfolder, "");
+                        _workable = checkout_link.getWorkingCopy();
+                }
+        }
+		return _workable;
+	}
+	
+	
+	public static Workable doCheckin(Workable workable) throws WTException, WTPropertyVetoException {
+		Workable _workable = null;
+		if (wt.vc.wip.WorkInProgressHelper.isCheckedOut((Workable) workable))
+        {
+			_workable = WorkInProgressHelper.service.checkin(workable, "check in");
+        } else {
+        	_workable = workable;
+        }
+		return _workable;
+		
+	}
 	
 	
 	public static List getConstaintRule(String typeName, String ibaName) throws WTException {
@@ -88,7 +137,35 @@ public class IBATrainingDemo {
 	}
 	
 	
-	public static void setIBAValue(Class clazz, IBAHolder ibaholder, HashMap<String, Object> ibamap) throws RemoteException, WTException {
+	
+	public static void updateStandardAttributeIBAValue(IBAHolder ibaHolder, String attrName, Object value) throws WTException {
+		Persistable persistable = (Persistable) ibaHolder;
+		PersistableAdapter persistableAdapter = new PersistableAdapter(persistable, null, Locale.getDefault(), new UpdateOperationIdentifier());
+		TypeIdentifier typeIdentifier = TypeIdentifierUtility.getTypeIdentifier(persistable);
+		TypeDefinitionReadView view = TypeDefinitionServiceHelper.service.getTypeDefView(typeIdentifier);
+		if(view != null) {
+			AttributeDefinitionReadView attributeDefinitionReadView = view.getAttributeByName(attrName);
+			if(attributeDefinitionReadView != null) {
+				persistableAdapter.load(new String[] { attrName });
+				persistableAdapter.set(attrName, value);
+				persistableAdapter.apply();
+				PersistenceServerHelper.manager.update(persistable);
+			}
+		}
+	}
+	
+	
+	public static void updateIBAValue(IBAHolder ibaHolder, String attrName, Object value) throws WTException {
+		Persistable persistable = (Persistable) ibaHolder;
+		LWCNormalizedObject obj = new LWCNormalizedObject(persistable, null,Locale.getDefault(), new UpdateOperationIdentifier());
+		obj.load(attrName);
+		obj.set(attrName,value);
+		persistable = obj.apply();
+		persistable  = (Persistable)PersistenceHelper.manager.modify(persistable);
+	}
+	
+	
+	public static void setIBAValue(Class clazz, IBAHolder ibaholder, HashMap<String, Object> ibamap) throws Exception {
 		if(ibamap == null || ibamap.size() == 0 || ibaholder == null) {
 			return;
 		}
@@ -124,7 +201,58 @@ public class IBATrainingDemo {
 
 
 
-	private static void setStandardAttributeIBAValue(IBAHolder ibaholder, String ibaname, Object ibavalue, String dbColumnLabel) throws RemoteException, WTException {
+	private static void setIBAValue2(Class clazz, IBAHolder ibaholder, HashMap<String, Object> softAttrs) throws WTException {
+		List floatValueList = new ArrayList();
+		List stringValueList = new ArrayList();
+		List stringValuesList = new ArrayList();
+		List integerValueList = new ArrayList();
+		List ratioValueList = new ArrayList();
+		List timestampValueList = new ArrayList();
+		List booleanValueList = new ArrayList();
+		List urlValueList = new ArrayList();
+		List unitValueList = new ArrayList();
+		
+		for(Entry entry: softAttrs.entrySet()) {
+			String ibaname = (String) entry.getKey();
+			AttributeDefDefaultView view = getAttributeDefinition(ibaname);
+			if(view instanceof FloatDefView) {
+				FloatDefinition definition = (FloatDefinition) getDefinition(FloatDefinition.class, ibaname);
+				if(definition == null) {
+					continue;
+				}
+				Map map = new HashMap<>();
+				map.put(definition, String.valueOf(entry.getValue()));
+				floatValueList.add(map);
+			}
+		}
+		
+		if(floatValueList.size() > 0) {
+			
+		}
+		
+	}
+
+
+	private static Object getDefinition(Class class1, String ibaname) throws WTException {
+		Object object = null;
+		QuerySpec qs = new QuerySpec(class1);
+		qs.appendWhere(new SearchCondition(class1, "name", SearchCondition.EQUAL, ibaname), new int[] {});
+		QueryResult qr = PersistenceServerHelper.manager.query(qs);
+		while(qr.hasMoreElements()) {
+			object = qr.nextElement();
+		}
+		
+		return object;
+	}
+
+
+	private static AttributeDefDefaultView getAttributeDefinition(String ibaname) {
+		
+		return null;
+	}
+
+
+	private static void setStandardAttributeIBAValue(IBAHolder ibaholder, String ibaname, Object ibavalue, String dbColumnLabel) throws Exception {
 		Object value = null;
 		TypeIdentifier ti = TypeIdentifierUtilityHelper.service.getTypeIdentifier(ibaholder);
 		String softtype = ti.toString();
@@ -153,10 +281,52 @@ public class IBATrainingDemo {
 			value = String.valueOf(_s);
 		}
 		updateDB(value.toString(), dbColumnLabel, (Persistable) ibaholder);	
-		
+	}
+	
+
+	private static Object getTimestampDate(String _s) {
+		String timeString = _s;
+		Timestamp timestamp = null;
+		if(timeString != null && !"".equals(timeString)) {
+			timeString += "00:00:00";
+		}
+		java.text.SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date date = new Date(timeString);
+		simpleDateFormat.format(date);
+		timestamp = new Timestamp(date.getTime());
+		return timestamp;
 	}
 
 
+	private static void updateDB(String value, String dbColumnLabel, Persistable ibaholder) throws Exception {
+		MethodContext methodContext = MethodContext.getContext();
+		
+		WTConnection wtConnection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			String objectName = ibaholder.getClassInfo().getClassname();
+			String name = objectName.substring(objectName.lastIndexOf(".")+1, objectName.length());
+			String[] cols = dbColumnLabel.split(",");
+			
+			String sql = "update " + name + " set " + cols[0] + " = ? where ida2a2 = ?";
+			
+			wtConnection = (WTConnection) methodContext.getConnection();
+			statement = wtConnection.prepareStatement(sql.toString());
+			statement.setString(1, value);
+			statement.setString(2, String.valueOf(PersistenceHelper.getObjectIdentifier(ibaholder).getId()));
+			statement.execute();
+			if(statement != null) {
+				statement.close();
+				statement = null;
+			}
+		}finally {
+			if(statement != null) {
+				statement.close();
+				statement = null;
+			}
+		}
+	}
 
 
 
@@ -167,6 +337,21 @@ public class IBATrainingDemo {
 		}
 		return dbColumnLabel;
 	}
+	
+	
+	
+	public static List getConstraintRule(String type, String ibaName) throws WTException {
+		List rules = new ArrayList();
+		TypeIdentifier ti = TypedUtility.getTypeIdentifier(type);
+		TypeDefinitionReadView view =TypeDefinitionServiceHelper.service.getTypeDefView(ti);
+		AttributeDefinitionReadView attributeDefinitionReadView =  view.getAttributeByName(ibaName);
+		for(ConstraintDefinitionReadView constraint : attributeDefinitionReadView.getAllConstraints()) {
+			rules.add(constraint);
+		}
+		return rules;
+	}
+	
+	
 	
 	
 }

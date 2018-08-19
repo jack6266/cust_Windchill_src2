@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!-- define the navigation of the site - action models for tabs, subtabs and other areas of the page header -->
+<actionmodels>
+
+    <model name="main navigation" id="browseActions" resourceBundle="com.ptc.core.ui.navigationRB">
+        <description>
+            Main navigation (tabs)
+        </description>
+        <action name="recentContexts" type="navigation"/>
+        <action name="product" type="navigation"/>
+        <action name="library" type="navigation"/>
+        <action name="project" type="navigation"/>
+        <action name="program" type="navigation"/>
+        <action name="change" type="navigation"/>
+        <action name="supplier" type="navigation"/>
+        <action name="qms" type="navigation"/>
+        <action name="org" type="navigation"/>
+        <action name="site" type="navigation"/>
+        <action name="clfAdmin" type="navigation"/>
+        <action name="search" type="navigation"/>
+        <action name="customization" type="navigation"/>
+        <action name="csc" type="navigation"/>
+    </model>
+
+    <model name="csc navigation" defaultActionName="list" defaultActionType="csc">
+        <description>
+            Sub tabs under the csc main tab
+        </description>
+        <action name="petSameple" type="csc" />
+    </model>
+
+</actionmodels>
+

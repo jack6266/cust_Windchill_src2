@@ -41,6 +41,7 @@ public class PetTable extends AbstractComponentBuilder {
 		table.setShowCount(true);
 		table.setShowCustomViewLink(false);
 
+
 		ColumnConfig name = null;
 		name = factory.newColumnConfig(Pet.NAME, true);
 		name.setInfoPageLink(true);

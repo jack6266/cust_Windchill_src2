@@ -35,7 +35,7 @@ public abstract class AbstractCscTableConfigBuilder extends AbstractComponentCon
 		ComponentConfigFactory componentconfigfactory = getComponentConfigFactory();
 		JcaTableConfig tableconfig = (JcaTableConfig) componentconfigfactory.newTableConfig();
 		tableconfig.setComponentMode(ComponentMode.VIEW);
-		tableconfig.setLabel("PART_TABLE_LABEL");
+		tableconfig.setLabel("PET_TABLE_LABEL");
 		tableconfig.setSelectable(true);
 		tableconfig.setType("com.acme.Pet");
 		tableconfig.setConfigurable(true);
@@ -43,7 +43,6 @@ public abstract class AbstractCscTableConfigBuilder extends AbstractComponentCon
 		tableconfig.setActionModel("pets list");
 		tableconfig.setShowCount(true);
 		tableconfig.setShowCustomViewLink(true);
-		
 		
 		ColumnConfig columnconfig = componentconfigfactory.newColumnConfig("name", true);
 		tableconfig.addComponent(columnconfig);

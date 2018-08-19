@@ -35,4 +35,6 @@ public class WTPartLinkTraningDemo implements RemoteAccess, Serializable {
 	}
 	
 	
+	
+	
 }

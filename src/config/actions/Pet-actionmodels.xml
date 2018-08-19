@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE actionmodels SYSTEM 'actionmodels.dtd'>
+<!-- define the actions on the UI components -->
+<actionmodels>
+
+	<model name="petDetails">
+		<action name="primaryAttributes" type="object"/>
+		<action name="attachments" type="object"/>
+	</model>
+
+	<model name="pets list">
+        <action name="create" type="pet" shortcut="true"/>
+    </model>
+
+</actionmodels>

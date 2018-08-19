@@ -1,6 +1,5 @@
 package ext.training.mvc.builder;
 
-import com.acme.Pet;
 import com.ptc.jca.mvc.builders.DefaultInfoComponentBuilder;
 import com.ptc.mvc.components.ComponentBuilder;
 import com.ptc.mvc.components.ComponentId;
@@ -18,7 +17,6 @@ public class PetInfoBuilder extends DefaultInfoComponentBuilder {
 	protected InfoConfig buildInfoConfig(ComponentParams componentparams) throws WTException {
 		InfoConfig info = getComponentConfigFactory().newInfoConfig();
 		info.setTabSet("petDetails");
-		info.setType(Pet.class.getName());
 		return info;
 	}
 }

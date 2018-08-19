@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE listofactions SYSTEM "../../actions.dtd">
+<listofactions>
+
+
+    <objecttype name="csc" resourceBundle="com.ptc.core.ui.navigationRB">
+        <action name="petSameple">
+            <component name="csc.custom.mvc.table" windowType="page" />
+        </action>
+    </objecttype>
+
+    <objecttype name="pet" class="com.acme.Pet" resourceBundle="com.acme.jca.acmeActionResource">
+        <action name="petDefineItemAttributesWizStep" afterVK="setAttributesWizStep" preloadWizardPage="true" required="true">
+            <command url="netmarkets/jsp/acme/pet/defineItemAttributesWizStep.jsp" windowType="wizard_step"/>
+        </action>
+
+        <action name="create">
+            <command class="com.ptc.core.components.forms.CreateObjectFormProcessor"  url="netmarkets/jsp/acme/pet/create.jsp" windowType="popup"/>
+        </action>
+    </objecttype>
+
+
+</listofactions>
